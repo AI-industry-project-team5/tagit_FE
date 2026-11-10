@@ -2,7 +2,7 @@
 name: Setting
 about: 프로젝트 설정 / 환경 구성 / 배포
 title: '[setting] '
-labels: 'setting'
+labels: 'Setting'
 ---
 
 ### Description

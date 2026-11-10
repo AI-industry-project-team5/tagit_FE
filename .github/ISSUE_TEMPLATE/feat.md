@@ -2,7 +2,7 @@
 name: Feature
 about: 기능 추가 / 화면 구현
 title: '[feat] '
-labels: 'feat'
+labels: 'Feature'
 ---
 
 ### Description

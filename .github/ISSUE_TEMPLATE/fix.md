@@ -2,7 +2,7 @@
 name: Bug Fix
 about: 버그 수정
 title: '[fix] '
-labels: 'fix'
+labels: 'Fix'
 ---
 
 ### Description

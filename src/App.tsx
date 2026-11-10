@@ -1,9 +1,8 @@
+import { RouterProvider } from 'react-router-dom';
+import router from '@routes/router';
+
 function App() {
-  return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-3xl font-bold">tagit</h1>
-    </main>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

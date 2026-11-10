@@ -20,7 +20,16 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path Alias */
+    "paths": {
+      "@app/*": ["./src/app/*"],
+      "@layout/*": ["./src/app/layout/*"],
+      "@pages/*": ["./src/app/pages/*"],
+      "@routes/*": ["./src/app/routes/*"],
+      "@shared/*": ["./src/app/shared/*"]
+    }
   },
   "include": ["src"]
 }

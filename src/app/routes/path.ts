@@ -16,8 +16,16 @@ export const paths = {
   result: '/user/result/:feature/:analysisId',
   /** 공유된 결과 (읽기 전용) */
   share: '/user/share/:token',
-  /** 관리자 영역 루트 (관리자 담당자가 하위 경로를 추가) */
+  /** 관리자 영역 루트 (/admin/dashboard 로 리다이렉트) */
   adminRoot: '/admin',
+  /** 관리자 로그인 */
+  adminLogin: '/admin/login',
+  /** 관리자 대시보드 */
+  adminDashboard: '/admin/dashboard',
+  /** 이미지 목록 (category: ai | real) */
+  adminImages: '/admin/images/:category',
+  /** 검증 결과 상세 */
+  adminDetail: '/admin/analyses/:analysisId',
 } as const;
 
 export const getAnalyzingPath = (feature: string, analysisId: string) =>
@@ -27,3 +35,12 @@ export const getResultPath = (feature: string, analysisId: string) =>
   `/user/result/${feature}/${analysisId}`;
 
 export const getSharePath = (token: string) => `/user/share/${token}`;
+
+/** 관리자 이미지 목록 분류: AI 생성·합성 의심 / 실제 촬영 추정 */
+export type AdminImageCategory = 'ai' | 'real';
+
+export const getAdminImagesPath = (category: AdminImageCategory) =>
+  `/admin/images/${category}`;
+
+export const getAdminDetailPath = (analysisId: string) =>
+  `/admin/analyses/${analysisId}`;

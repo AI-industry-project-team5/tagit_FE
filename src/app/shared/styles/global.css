@@ -6,11 +6,85 @@
     'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
 
-  /* 판정 단계 색상 (임시값, 디자인 확정 후 교체) */
-  --color-verdict-safe: #16a34a;
-  --color-verdict-suspicious: #f59e0b;
-  --color-verdict-danger: #dc2626;
-  --color-verdict-hold: #6b7280;
+  /* 판정 단계 색상 — Figma 디자인 시스템(status/*) 기준 */
+  --color-verdict-safe: #2eb57f;
+  --color-verdict-safe-bg: #ecfaf3;
+  --color-verdict-suspicious: #f59f00;
+  --color-verdict-suspicious-bg: #fff4db;
+  --color-verdict-danger: #f03e3e;
+  --color-verdict-danger-bg: #ffebeb;
+  --color-verdict-hold: #6b7684;
+  --color-verdict-hold-bg: #edeff2;
+
+  /* 브랜드 (Figma brand/*) */
+  --color-brand-green-500: #2eb57f;
+  --color-brand-green-300: #ade3c7;
+  --color-brand-green-100: #ecfaf3;
+  --color-brand-yellow-400: #ffe066;
+  --color-brand-yellow-100: #fff6d1;
+
+  /* 중립 (Figma neutral/*) */
+  --color-neutral-text: #191f28;
+  --color-neutral-text-sub: #6b7684;
+  --color-neutral-text-muted: #a1a8b3;
+  --color-neutral-border: #e5e8eb;
+  --color-neutral-border-strong: #c7ccd4;
+  --color-neutral-bg: #f7f8fa;
+  --color-neutral-toast: #212930;
+
+  /* 사진 자리 (Figma placeholder/*) */
+  --color-placeholder-photo-bg: #d1d6de;
+  --color-placeholder-object: #8c94a1;
+  --color-placeholder-illustration: #c7d6cf;
+
+  /* 페이지 배경 그라데이션 (Figma bg/page-*) */
+  --color-page-top: #edfaf4;
+  --color-page-mid: #fbfdfc;
+  --color-page-bottom: #fffcf2;
+
+  /* 그림자 (Figma drop-shadow) */
+  --shadow-card: 0 12px 18px rgba(31, 51, 41, 0.08);
+  --shadow-feature: 0 4px 6px rgba(26, 31, 38, 0.06);
+  --shadow-feature-selected: 0 8px 12px rgba(46, 181, 128, 0.18);
+  --shadow-button: 0 6px 8px rgba(46, 181, 128, 0.22);
+  --shadow-toast: 0 8px 12px rgba(0, 0, 0, 0.18);
+  --shadow-message: 0 8px 16px rgba(26, 38, 77, 0.08);
+  --shadow-segment: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  /* 애니메이션 */
+  --animate-scan: scan 2.4s ease-in-out infinite alternate;
+
+  --animate-fade-in: fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-bar-grow: bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes scan {
+    from {
+      top: 18%;
+    }
+    to {
+      top: 82%;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes bar-grow {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
 }
 
 @layer base {
@@ -22,8 +96,48 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   a {
     text-decoration: none;
     color: inherit;
+  }
+
+  /* 눌러서 동작하는 요소는 모두 포인터 커서 (Tailwind preflight 가 버튼 커서를 기본으로 되돌림) */
+  a[href],
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='tab']:not(:disabled),
+  [role='radio'],
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* 키보드 포커스 표시 */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-green-500);
+    outline-offset: 2px;
+  }
+
+  /* 움직임을 줄이도록 설정한 사용자 */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

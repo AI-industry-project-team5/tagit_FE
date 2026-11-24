@@ -1,38 +1,35 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { Navigate, createBrowserRouter } from 'react-router-dom';
 import RootLayout from '@layout/RootLayout';
+import UserLayout from '@layout/UserLayout';
 import ErrorPage from '@layout/ErrorPage';
-import UploadPage from '@pages/upload/UploadPage';
-import AnalyzingPage from '@pages/analyzing/AnalyzingPage';
-import ResultPage from '@pages/result/ResultPage';
-import SharedResultPage from '@pages/share/SharedResultPage';
 import NotFoundPage from '@pages/notFound/NotFoundPage';
+import { adminRoutes } from '@routes/adminRoutes';
 import { paths } from '@routes/path';
+import { userRoutes } from '@routes/userRoutes';
 
 const router = createBrowserRouter([
   {
-    path: paths.upload,
+    path: paths.root,
     element: <RootLayout />,
     errorElement: <ErrorPage />,
     children: [
       {
+        // / 는 사용자 메인(/user)으로 이동
         index: true,
-        element: <UploadPage />,
+        element: <Navigate to={paths.userRoot} replace />,
       },
       {
-        path: paths.analyzing,
-        element: <AnalyzingPage />,
+        path: paths.userRoot,
+        element: <UserLayout />,
+        children: userRoutes,
       },
+      // 관리자 라우트 (/admin/*) — adminRoutes.tsx 에서 관리
+      ...adminRoutes,
       {
-        path: paths.result,
-        element: <ResultPage />,
-      },
-      {
-        path: paths.share,
-        element: <SharedResultPage />,
-      },
-      {
+        // 그 외 모든 주소 — 사용자 레이아웃(헤더) 안에서 404 화면 표시
         path: '*',
-        element: <NotFoundPage />,
+        element: <UserLayout />,
+        children: [{ path: '*', element: <NotFoundPage /> }],
       },
     ],
   },

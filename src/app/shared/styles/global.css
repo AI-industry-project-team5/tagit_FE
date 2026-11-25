@@ -55,6 +55,8 @@
   --shadow-toast: 0 8px 12px rgba(0, 0, 0, 0.18);
   --shadow-message: 0 8px 16px rgba(26, 38, 77, 0.08);
   --shadow-segment: 0 2px 4px rgba(0, 0, 0, 0.08);
+  /* 관리자 화면 카드 (A-01 대시보드 등) */
+  --shadow-admin-card: 0 8px 12px rgba(31, 51, 41, 0.06);
 
   /* 애니메이션 */
   --animate-scan: scan 2.4s ease-in-out infinite alternate;

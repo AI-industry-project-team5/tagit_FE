@@ -15,4 +15,8 @@ export const API_ENDPOINT = {
     /** 공유된 결과 조회 */
     DETAIL: (token: string) => `/shares/${token}`,
   },
+  ADMIN: {
+    /** 대시보드 집계 (?period=today|7d|all) — 백엔드 합의 전 초안 */
+    DASHBOARD: '/admin/dashboard',
+  },
 };

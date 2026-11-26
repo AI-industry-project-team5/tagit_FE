@@ -10,9 +10,6 @@ export const parsePeriod = (raw: string | null): AdminPeriod =>
   ADMIN_PERIOD_OPTIONS.find((option) => option.value === raw)?.value ??
   DEFAULT_ADMIN_PERIOD;
 
-export const getPeriodLabel = (period: AdminPeriod) =>
-  ADMIN_PERIOD_OPTIONS.find((option) => option.value === period)?.label ?? '';
-
 /**
  * 다른 관리자 화면으로 이동할 때 기간을 이어 붙입니다.
  * 기본값이면 주소를 깔끔하게 두기 위해 생략합니다.

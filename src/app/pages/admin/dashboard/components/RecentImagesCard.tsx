@@ -3,12 +3,12 @@ import { getAdminImagesPath } from '@routes/path';
 import type { AdminImageCategory } from '@routes/path';
 import { withPeriod } from '@pages/admin/utils/period';
 import RecentImageItem from '@pages/admin/dashboard/components/RecentImageItem';
-import type { AdminImageSummary, AdminPeriod } from '@shared/types/admin';
+import type { AdminPeriod, AdminRecentImage } from '@shared/types/admin';
 
 interface RecentImagesCardProps {
   title: string;
   category: AdminImageCategory;
-  images: AdminImageSummary[];
+  images: AdminRecentImage[];
   period: AdminPeriod;
 }
 
@@ -34,7 +34,7 @@ const RecentImagesCard = ({
       {images.length > 0 ? (
         <ul className="grid grid-cols-4 gap-[12px]">
           {images.map((image) => (
-            <li key={image.analysisId} className="min-w-0">
+            <li key={image.id} className="min-w-0">
               <RecentImageItem image={image} category={category} />
             </li>
           ))}

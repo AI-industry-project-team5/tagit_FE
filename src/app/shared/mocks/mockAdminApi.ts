@@ -1,10 +1,13 @@
 import {
   getDashboardMock,
   getEmptyDashboardMock,
+  getImageDetailMock,
   getImageListMock,
 } from '@shared/mocks/adminMockData';
 import type {
   AdminDashboardResponse,
+  AdminErrorResponse,
+  AdminImageDetailResponse,
   AdminImageListParams,
   AdminImageListResponse,
   AdminPeriod,
@@ -36,6 +39,17 @@ const SLOW_LATENCY_MS = 2500;
 const wait = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** 실제 API 오류(axios)와 같은 모양: error.response.status / error.response.data */
+export class MockAdminApiError extends Error {
+  response: { status: number; data: AdminErrorResponse };
+
+  constructor(status: number, data: AdminErrorResponse) {
+    super(data.message);
+    this.name = 'MockAdminApiError';
+    this.response = { status, data };
+  }
+}
+
 const simulate = async (scenario: AdminMockScenario) => {
   await wait(scenario === 'slow' ? SLOW_LATENCY_MS : MOCK_LATENCY_MS);
 
@@ -62,4 +76,21 @@ export const fetchImageList = async (
 ): Promise<AdminImageListResponse> => {
   await simulate(scenario);
   return getImageListMock(params, scenario === 'empty');
+};
+
+/** GET /images/{id} — 없는 분석 번호면 404 JOB_NOT_FOUND */
+export const fetchImageDetail = async (
+  imageId: string,
+  scenario: AdminMockScenario
+): Promise<AdminImageDetailResponse> => {
+  await simulate(scenario);
+
+  const detail = getImageDetailMock(imageId);
+  if (!detail) {
+    throw new MockAdminApiError(404, {
+      error_code: 'JOB_NOT_FOUND',
+      message: '분석 결과를 찾을 수 없습니다.',
+    });
+  }
+  return detail;
 };

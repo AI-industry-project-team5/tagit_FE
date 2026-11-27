@@ -6,7 +6,7 @@ import type { AdminPeriod } from '@shared/types/admin';
 /**
  * 대시보드 집계 조회
  * 현재는 Mock API 를 호출합니다. API 연동 시 queryFn 만
- * axiosInstance.get(API_ENDPOINT.ADMIN.DASHBOARD, { params: { period } }) 로 교체합니다.
+ * axiosInstance.get<AdminDashboardResponse>(API_ENDPOINT.ADMIN.DASHBOARD, { params: { period } }) 로 교체합니다.
  */
 export const useDashboardQuery = (
   period: AdminPeriod,

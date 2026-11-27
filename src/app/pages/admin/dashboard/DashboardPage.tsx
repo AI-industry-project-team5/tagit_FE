@@ -40,21 +40,23 @@ const DashboardPage = () => {
     return (
       <div className="flex w-full animate-fade-in flex-col gap-[24px]">
         <RatioCard
-          totalCount={data.totalCount}
-          aiCount={data.aiCount}
-          realCount={data.realCount}
+          totalCount={data.summary.total_count}
+          aiCount={data.summary.ai_suspected_count}
+          realCount={data.summary.real_estimated_count}
+          aiRatio={data.summary.ai_suspected_ratio}
+          realRatio={data.summary.real_estimated_ratio}
         />
         <div className="flex w-full flex-col gap-[16px] lg:flex-row">
           <RecentImagesCard
             title="최근 AI 의심 이미지"
             category="ai"
-            images={data.recentAiImages}
+            images={data.recent_ai_suspected}
             period={period}
           />
           <RecentImagesCard
             title="최근 실제 촬영 이미지"
             category="real"
-            images={data.recentRealImages}
+            images={data.recent_real_estimated}
             period={period}
           />
         </div>

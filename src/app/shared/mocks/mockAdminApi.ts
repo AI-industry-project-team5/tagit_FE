@@ -1,8 +1,14 @@
 import {
-  EMPTY_DASHBOARD_MOCK,
   getDashboardMock,
+  getEmptyDashboardMock,
+  getImageListMock,
 } from '@shared/mocks/adminMockData';
-import type { AdminPeriod, DashboardSummary } from '@shared/types/admin';
+import type {
+  AdminDashboardResponse,
+  AdminImageListParams,
+  AdminImageListResponse,
+  AdminPeriod,
+} from '@shared/types/admin';
 
 /**
  * 관리자 화면용 Mock API
@@ -10,7 +16,7 @@ import type { AdminPeriod, DashboardSummary } from '@shared/types/admin';
  *
  * ?mock=<값> 으로 상태를 바꿔 볼 수 있습니다. (관리자 UI 에는 노출하지 않음)
  * - error : 불러오기 실패 (AD-g)
- * - empty : 분석된 사진이 없음
+ * - empty : 분석된 사진이 없음 (AD-d)
  * - slow  : 응답 지연 (로딩 스켈레톤 확인용)
  */
 export type AdminMockScenario = 'normal' | 'error' | 'empty' | 'slow';
@@ -30,14 +36,30 @@ const SLOW_LATENCY_MS = 2500;
 const wait = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-export const fetchDashboardSummary = async (
-  period: AdminPeriod,
-  scenario: AdminMockScenario
-): Promise<DashboardSummary> => {
+const simulate = async (scenario: AdminMockScenario) => {
   await wait(scenario === 'slow' ? SLOW_LATENCY_MS : MOCK_LATENCY_MS);
 
   if (scenario === 'error') {
-    throw new Error('mock: dashboard load failed');
+    throw new Error('mock: admin request failed');
   }
-  return scenario === 'empty' ? EMPTY_DASHBOARD_MOCK : getDashboardMock(period);
+};
+
+/** GET /dashboard */
+export const fetchDashboardSummary = async (
+  period: AdminPeriod,
+  scenario: AdminMockScenario
+): Promise<AdminDashboardResponse> => {
+  await simulate(scenario);
+  return scenario === 'empty'
+    ? getEmptyDashboardMock(period)
+    : getDashboardMock(period);
+};
+
+/** GET /images */
+export const fetchImageList = async (
+  params: AdminImageListParams,
+  scenario: AdminMockScenario
+): Promise<AdminImageListResponse> => {
+  await simulate(scenario);
+  return getImageListMock(params, scenario === 'empty');
 };

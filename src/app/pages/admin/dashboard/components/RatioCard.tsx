@@ -1,13 +1,13 @@
-import {
-  formatCount,
-  formatPercent,
-  getRatio,
-} from '@pages/admin/dashboard/utils/ratio';
+import { formatCount, formatRatio } from '@pages/admin/utils/format';
 
 interface RatioCardProps {
   totalCount: number;
   aiCount: number;
   realCount: number;
+  /** AI 의심 비율 0~1 (서버 값) */
+  aiRatio: number;
+  /** 실제 촬영 추정 비율 0~1 (서버 값) */
+  realRatio: number;
 }
 
 interface CountRowProps {
@@ -29,8 +29,13 @@ const CountRow = ({ label, count, valueClassName }: CountRowProps) => (
 );
 
 /** A-01 AI 합성 의심 / 실제 촬영 비율 + 사진 수 */
-const RatioCard = ({ totalCount, aiCount, realCount }: RatioCardProps) => {
-  const { aiPercent, realPercent } = getRatio(aiCount, totalCount);
+const RatioCard = ({
+  totalCount,
+  aiCount,
+  realCount,
+  aiRatio,
+  realRatio,
+}: RatioCardProps) => {
   const isEmpty = totalCount === 0;
 
   return (
@@ -51,23 +56,23 @@ const RatioCard = ({ totalCount, aiCount, realCount }: RatioCardProps) => {
         ) : (
           <div
             role="img"
-            aria-label={`AI 생성·합성 의심 ${formatPercent(aiPercent)}, 실제 촬영 추정 ${formatPercent(realPercent)}`}
+            aria-label={`AI 생성·합성 의심 ${formatRatio(aiRatio)}, 실제 촬영 추정 ${formatRatio(realRatio)}`}
             className="flex h-[44px] origin-left animate-bar-grow gap-[4px] overflow-hidden rounded-[14px]"
           >
             {aiCount > 0 && (
               <div
                 className="flex min-w-[72px] items-center bg-verdict-danger pl-[14px]"
-                style={{ flexBasis: `${aiPercent}%` }}
+                style={{ flexBasis: `${aiRatio * 100}%` }}
               >
                 <span className="text-[15px] leading-[1.4] font-black text-white">
-                  {formatPercent(aiPercent)}
+                  {formatRatio(aiRatio)}
                 </span>
               </div>
             )}
             {realCount > 0 && (
               <div className="flex min-w-[72px] flex-1 items-center justify-end bg-brand-green-300 pr-[16px]">
                 <span className="text-[15px] leading-[1.4] font-black text-neutral-text">
-                  {formatPercent(realPercent)}
+                  {formatRatio(realRatio)}
                 </span>
               </div>
             )}

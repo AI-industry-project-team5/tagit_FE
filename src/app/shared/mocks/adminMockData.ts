@@ -1,36 +1,45 @@
 import photoUrl from '@shared/assets/mock/photo.svg';
+import heatmapUrl from '@shared/assets/mock/heatmap.svg';
 import type {
   AdminDashboardResponse,
   AdminEditStatus,
+  AdminImageDetailResponse,
   AdminImageItem,
   AdminImageListParams,
   AdminImageListResponse,
   AdminOcrStatus,
   AdminPeriod,
+  AdminRiskLevel,
 } from '@shared/types/admin';
 
 /**
  * 관리자 화면 확인용 Mock 데이터 (API 명세서 v2 응답 형식)
  * UI 컴포넌트는 이 파일을 직접 import 하지 않고, mockAdminApi 를 거쳐
  * 페이지(훅)에서만 주입받습니다. API 연동 시 이 파일들만 교체합니다.
+ *
+ * 전체 이미지 한 벌을 만들고, 기간은 그중 최근 N장으로 나눕니다.
+ * 그래서 같은 분석 번호는 목록·대시보드·상세 어디서든 같은 값입니다.
  */
 
-/** 기간별 집계 (최근 7일은 Figma A-01 수치) */
-const COUNTS: Record<AdminPeriod, { total: number; ai: number }> = {
-  today: { total: 128, ai: 21 },
-  '7d': { total: 3927, ai: 612 },
-  all: { total: 12480, ai: 1873 },
-};
+/**
+ * 기간별 누적 집계 (최근 7일은 Figma A-01 수치)
+ * 각 구간 안에서 AI 의심 이미지를 고르게 섞어 정확한 장수가 되도록 배치합니다.
+ */
+const SEGMENTS: ReadonlyArray<{
+  period: AdminPeriod;
+  total: number;
+  ai: number;
+  /** 구간이 끝나는 시점 (기준 시각으로부터 초) */
+  spanSeconds: number;
+}> = [
+  { period: 'today', total: 128, ai: 21, spanSeconds: 13 * 3600 },
+  { period: '7d', total: 3927, ai: 612, spanSeconds: 7 * 86400 },
+  { period: 'all', total: 12480, ai: 1873, spanSeconds: 60 * 86400 },
+];
 
+const TOTAL_COUNT = SEGMENTS[SEGMENTS.length - 1].total;
 const BASE_TIME = new Date('2026-11-20T14:10:00+09:00').getTime();
 const RECENT_LIMIT = 4;
-
-/** 기간 안에 분석 시각이 고르게 들어오도록 이미지 사이 간격(초) */
-const INTERVAL_SECONDS: Record<AdminPeriod, number> = {
-  today: 360,
-  '7d': 150,
-  all: 400,
-};
 
 /** 편집 기록·글씨 인식 상태 조합 (태그 4종이 골고루 보이도록) */
 const STATUS_PATTERN: ReadonlyArray<[AdminEditStatus, AdminOcrStatus]> = [
@@ -45,56 +54,71 @@ const STATUS_PATTERN: ReadonlyArray<[AdminEditStatus, AdminOcrStatus]> = [
 ];
 
 /** id 로 항상 같은 값을 내는 0~1 난수 */
-const seeded = (id: number) => ((id * 9301 + 49297) % 233280) / 233280;
+const seeded = (id: number, salt = 0) =>
+  (((id + salt * 7919) * 9301 + 49297) % 233280) / 233280;
 
 const roundTo = (value: number, digits: number) =>
   Math.round(value * 10 ** digits) / 10 ** digits;
+
+const getCounts = (period: AdminPeriod) => {
+  const segment = SEGMENTS.find((item) => item.period === period);
+  return { total: segment?.total ?? 0, ai: segment?.ai ?? 0 };
+};
 
 interface MockImage extends AdminImageItem {
   isAi: boolean;
 }
 
-const createImages = (period: AdminPeriod): MockImage[] => {
-  const { total, ai } = COUNTS[period];
-  const startId = Math.max(3921, total);
+const createImage = (index: number): MockImage => {
+  const segmentIndex = SEGMENTS.findIndex((item) => index < item.total);
+  const segment = SEGMENTS[segmentIndex];
+  const prev = SEGMENTS[segmentIndex - 1] ?? {
+    total: 0,
+    ai: 0,
+    spanSeconds: 0,
+  };
 
-  return Array.from({ length: total }, (_, index) => {
-    const id = startId - index;
-    // AI 의심 이미지를 전체에 고르게 섞어 정확히 ai 장이 되도록 배치
-    const isAi =
-      Math.floor(((index + 1) * ai) / total) > Math.floor((index * ai) / total);
-    const random = seeded(id);
-    const [editStatus, ocrStatus] = STATUS_PATTERN[id % STATUS_PATTERN.length];
+  const count = segment.total - prev.total;
+  const aiCount = segment.ai - prev.ai;
+  const position = index - prev.total;
+  const isAi =
+    Math.floor(((position + 1) * aiCount) / count) >
+    Math.floor((position * aiCount) / count);
 
-    return {
-      id,
-      job_id: `9f1c2d7e-0000-4000-8000-${String(id).padStart(12, '0')}`,
-      // 일부는 삭제된 이미지(썸네일 없음)로
-      thumbnail_url: id % 23 === 0 ? null : photoUrl,
-      probability: roundTo(
-        isAi ? 0.5 + random * 0.49 : 0.01 + random * 0.48,
-        3
-      ),
-      edit_status: editStatus,
-      ocr_status: ocrStatus,
-      completed_at: new Date(
-        BASE_TIME - index * INTERVAL_SECONDS[period] * 1000
-      ).toISOString(),
-      isAi,
-    };
-  });
+  const id = TOTAL_COUNT - index;
+  const random = seeded(id);
+  const [editStatus, ocrStatus] = STATUS_PATTERN[id % STATUS_PATTERN.length];
+  const seconds =
+    prev.spanSeconds +
+    ((segment.spanSeconds - prev.spanSeconds) * position) / count;
+
+  return {
+    id,
+    job_id: `9f1c2d7e-0000-4000-8000-${String(id).padStart(12, '0')}`,
+    // 일부는 삭제된 이미지(썸네일 없음)로
+    thumbnail_url: id % 23 === 0 ? null : photoUrl,
+    probability: roundTo(isAi ? 0.5 + random * 0.49 : 0.01 + random * 0.48, 3),
+    edit_status: editStatus,
+    ocr_status: ocrStatus,
+    completed_at: new Date(
+      BASE_TIME - Math.round(seconds) * 1000
+    ).toISOString(),
+    isAi,
+  };
 };
 
-const cache = new Map<AdminPeriod, MockImage[]>();
+let allImages: MockImage[] | null = null;
 
-const getImages = (period: AdminPeriod) => {
-  const cached = cache.get(period);
-  if (cached) return cached;
-
-  const images = createImages(period);
-  cache.set(period, images);
-  return images;
+/** 최신순 전체 이미지 (처음 한 번만 만듭니다) */
+const getAllImages = () => {
+  allImages ??= Array.from({ length: TOTAL_COUNT }, (_, index) =>
+    createImage(index)
+  );
+  return allImages;
 };
+
+const getImages = (period: AdminPeriod) =>
+  getAllImages().slice(0, getCounts(period).total);
 
 const toItem = (image: MockImage): AdminImageItem => ({
   id: image.id,
@@ -112,7 +136,7 @@ const getRatio = (count: number, total: number) =>
 export const getDashboardMock = (
   period: AdminPeriod
 ): AdminDashboardResponse => {
-  const { total, ai } = COUNTS[period];
+  const { total, ai } = getCounts(period);
   const images = getImages(period);
   const real = total - ai;
 
@@ -186,7 +210,7 @@ export const getImageListMock = (
   empty = false
 ): AdminImageListResponse => {
   const { category, period, q, sort, page, size } = params;
-  const { total, ai } = empty ? { total: 0, ai: 0 } : COUNTS[period];
+  const { total, ai } = empty ? { total: 0, ai: 0 } : getCounts(period);
   const isAi = category === 'ai_suspected';
   const categoryCount = isAi ? ai : total - ai;
 
@@ -218,5 +242,75 @@ export const getImageListMock = (
       total_pages: totalPages,
     },
     items: sorted.slice((page - 1) * size, page * size).map(toItem),
+  };
+};
+
+/** Figma 4-A·A-03 바운딩 박스 위치 (이미지 크기 대비 비율) */
+const MEMO_BOX = { left: 0.515, top: 0.428, width: 0.332, height: 0.424 };
+
+const OCR_TEXT = '중고왕123\n11.20';
+
+const getRiskLevel = (probability: number): AdminRiskLevel => {
+  if (probability >= 0.7) return 'HIGH';
+  if (probability >= 0.4) return 'MEDIUM';
+  return 'LOW';
+};
+
+const clampProbability = (value: number) =>
+  roundTo(Math.min(0.999, Math.max(0.001, value)), 3);
+
+/**
+ * GET /images/{id} — 없는 분석 번호면 null
+ * id(3921) 와 job_id 둘 다로 찾을 수 있습니다.
+ */
+export const getImageDetailMock = (
+  key: string
+): AdminImageDetailResponse | null => {
+  const image = getAllImages().find(
+    (item) => String(item.id) === key || item.job_id === key
+  );
+  if (!image) return null;
+
+  const probability = image.probability ?? 0;
+  const hasMetadata = image.edit_status !== 'NONE';
+  // 편집된 사진·메타데이터 없음은 기기·일시를 확인할 수 없음 (Figma A-03)
+  const hasCaptureInfo = hasMetadata && image.edit_status !== 'EDITED';
+
+  return {
+    id: image.id,
+    job_id: image.job_id,
+    step: 'COMPLETED',
+    status: 'SUCCESS',
+    data: {
+      completedAt: image.completed_at,
+      // 목록 썸네일이 없는(삭제된) 이미지는 원본도 없음
+      originalImageUrl: image.thumbnail_url === null ? null : photoUrl,
+      metadata: {
+        device: hasCaptureInfo ? 'Galaxy S24' : null,
+        capturedAt: hasCaptureInfo
+          ? new Date(
+              Date.parse(image.completed_at) - 12 * 60 * 1000
+            ).toISOString()
+          : null,
+        editStatus: image.edit_status,
+      },
+      boundingBox: MEMO_BOX,
+      ocrText: image.ocr_status === 'COMPLETED' ? OCR_TEXT : null,
+      result: {
+        riskLevel: getRiskLevel(probability),
+        probability,
+        // 일부는 히트맵 생성 실패(AD-k)로
+        overlayImageUrl: image.id % 5 === 0 ? null : heatmapUrl,
+        reason: null,
+      },
+      ocrStatus: image.ocr_status,
+      detail: {
+        detection: roundTo(0.9 + seeded(image.id, 1) * 0.09, 3),
+        classification: probability,
+        pytorch: clampProbability(
+          probability + (seeded(image.id, 2) - 0.5) * 0.3
+        ),
+      },
+    },
   };
 };

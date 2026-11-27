@@ -92,3 +92,60 @@ export interface AdminImageListResponse {
   };
   items: AdminImageItem[];
 }
+
+/**
+ * 위험 단계 (상세 result.riskLevel)
+ * 명세서 값이 확정되면 맞춰 수정합니다.
+ */
+export type AdminRiskLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+/** GET /images/{job_id} 응답 (data 안은 명세서대로 camelCase) */
+export interface AdminImageDetailResponse {
+  id: number;
+  job_id: string;
+  step: string;
+  status: string;
+  data: {
+    /** 분석 완료 시각 (UTC, ISO 8601) */
+    completedAt: string;
+    /** 삭제된 이미지는 null */
+    originalImageUrl: string | null;
+    metadata: {
+      device: string | null;
+      capturedAt: string | null;
+      editStatus: AdminEditStatus;
+    };
+    /** 메모 영역 (이미지 크기 대비 0~1 비율, 미탐지 시 null) */
+    boundingBox: {
+      left: number;
+      top: number;
+      width: number;
+      height: number;
+    } | null;
+    ocrText: string | null;
+    result: {
+      riskLevel: AdminRiskLevel;
+      /** AI 생성·합성 확률 0~1 */
+      probability: number | null;
+      /** 판단 근거 히트맵 (생성 실패 시 null) */
+      overlayImageUrl: string | null;
+      reason: string | null;
+    };
+    ocrStatus: AdminOcrStatus;
+    /** 모델별 확률 0~1 */
+    detail: {
+      /** 메모 영역 탐지 (Custom Vision) */
+      detection: number | null;
+      /** AI 합성 분류 (Custom Vision) */
+      classification: number | null;
+      /** AI 합성 분류 (PyTorch) */
+      pytorch: number | null;
+    };
+  };
+}
+
+/** 관리자 API 오류 응답 */
+export interface AdminErrorResponse {
+  error_code: string;
+  message: string;
+}

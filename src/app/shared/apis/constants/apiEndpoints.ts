@@ -21,7 +21,7 @@ export const API_ENDPOINT = {
     DASHBOARD: '/api/v1/admin/dashboard',
     /** 이미지 목록 (?category&period&q&sort&page&size) */
     IMAGES: '/api/v1/admin/images',
-    /** 검증 결과 상세 */
-    IMAGE_DETAIL: (jobId: string) => `/api/v1/admin/images/${jobId}`,
+    /** 검증 결과 상세 (id 또는 job_id) */
+    IMAGE_DETAIL: (imageId: string) => `/api/v1/admin/images/${imageId}`,
   },
 };

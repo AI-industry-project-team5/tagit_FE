@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getAdminDetailPath } from '@routes/path';
 import type { AdminImageCategory } from '@routes/path';
+import type { DetailLocationState } from '@pages/admin/detail/types/detailView';
 import AdminThumbnail from '@pages/admin/components/AdminThumbnail';
 import { formatAnalysisId, toPercent } from '@pages/admin/utils/format';
 import type { AdminRecentImage } from '@shared/types/admin';
@@ -17,12 +18,19 @@ const BADGE_CLASS: Record<AdminImageCategory, string> = {
 
 /** 최근 이미지 썸네일 + "AI 92%" 뱃지 — 누르면 검증 결과 상세로 이동 */
 const RecentImageItem = ({ image, category }: RecentImageItemProps) => {
+  const location = useLocation();
   const analysisId = formatAnalysisId(image.id);
   const percent = toPercent(image.probability);
 
   return (
     <Link
       to={getAdminDetailPath(String(image.id))}
+      // 상세의 '목록으로'가 지금 보던 화면으로 돌아오도록
+      state={
+        {
+          from: location.pathname + location.search,
+        } satisfies DetailLocationState
+      }
       aria-label={`${analysisId} 상세 보기${percent === null ? '' : ` (AI 의심 ${percent}%)`}`}
       className="group flex min-w-0 flex-col items-start gap-[6px] rounded-[16px]"
     >
